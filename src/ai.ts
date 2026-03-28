@@ -1,6 +1,11 @@
 const GATEWAY_URL = 'https://ai-gateway.happycapy.ai/api/v1/chat/completions';
-const API_KEY = process.env.AI_GATEWAY_API_KEY ?? '';
 const MODEL = 'anthropic/claude-sonnet-4.6';
+
+function getApiKey(): string {
+  const key = process.env.AI_GATEWAY_API_KEY ?? '';
+  if (!key) throw new Error('AI_GATEWAY_API_KEY not set');
+  return key;
+}
 
 interface Message {
   role: 'system' | 'user' | 'assistant';
@@ -8,10 +13,11 @@ interface Message {
 }
 
 async function chat(messages: Message[]): Promise<string> {
+  const apiKey = getApiKey();
   const res = await fetch(GATEWAY_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ model: MODEL, messages, max_tokens: 4096 }),
@@ -19,10 +25,13 @@ async function chat(messages: Message[]): Promise<string> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`AI Gateway ${res.status}: ${text}`);
+    throw new Error(`AI Gateway ${res.status}: ${text.substring(0, 200)}`);
   }
 
   const json = await res.json() as { choices: Array<{ message: { content: string } }> };
+  if (!json.choices?.[0]?.message?.content) {
+    throw new Error(`AI Gateway returned unexpected response: ${JSON.stringify(json).substring(0, 200)}`);
+  }
   return json.choices[0].message.content;
 }
 
