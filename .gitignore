@@ -1,0 +1,6 @@
+node_modules/
+dist/
+data/user-profile.json
+outputs/
+*.log
+.env
