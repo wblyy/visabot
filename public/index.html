@@ -3,68 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VisaBot - Japan Visa Material Generator</title>
+<title>VisaBot - 日本签证材料生成器</title>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>
   :root {
-    --bg: #0a0a0f; --surface: #13131a; --border: #1e1e2a;
-    --text: #e0e0e8; --text-dim: #6b6b80; --accent: #6366f1;
-    --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+    --bg: #f5f5f7; --surface: #ffffff; --border: #e5e5ea;
+    --text: #1d1d1f; --text-dim: #86868b; --accent: #4f46e5;
+    --success: #16a34a; --error: #dc2626; --warning: #d97706;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, 'SF Pro', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-  header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-  header h1 { font-size: 24px; font-weight: 600; }
-  header span { color: var(--text-dim); font-size: 14px; }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 32px; }
+  header h1 { font-size: 24px; font-weight: 700; }
+  header span { color: var(--text-dim); font-size: 13px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
   @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
   label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; margin-top: 12px; }
   input, select, textarea {
     width: 100%; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); font-size: 13px; outline: none;
+    border-radius: 6px; color: var(--text); font-size: 13px; outline: none; transition: border-color 0.15s;
   }
-  input:focus, select:focus { border-color: var(--accent); }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;
     background: var(--accent); color: #fff; border: none; border-radius: 8px;
-    font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 16px;
+    font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 16px; transition: background 0.15s;
   }
-  .btn:hover { opacity: 0.9; }
+  .btn:hover { background: #4338ca; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--bg); }
   .dropzone {
     border: 2px dashed var(--border); border-radius: 8px; padding: 32px; text-align: center;
-    color: var(--text-dim); cursor: pointer; transition: border-color 0.2s;
+    color: var(--text-dim); cursor: pointer; transition: all 0.2s;
   }
-  .dropzone:hover, .dropzone.dragover { border-color: var(--accent); }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--accent); background: rgba(79,70,229,0.03); }
   .dropzone input { display: none; }
   .step-list { list-style: none; }
   .step-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .step-item:last-child { border-bottom: none; }
   .badge {
     display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    min-width: 48px; text-align: center;
   }
-  .badge-pending { background: var(--border); color: var(--text-dim); }
-  .badge-running { background: rgba(99,102,241,0.2); color: var(--accent); animation: pulse 1.5s infinite; }
-  .badge-done { background: rgba(34,197,94,0.2); color: var(--success); }
-  .badge-error { background: rgba(239,68,68,0.2); color: var(--error); }
+  .badge-pending { background: #f3f4f6; color: var(--text-dim); }
+  .badge-running { background: rgba(79,70,229,0.1); color: var(--accent); animation: pulse 1.5s infinite; }
+  .badge-done { background: rgba(22,163,74,0.1); color: var(--success); }
+  .badge-error { background: rgba(220,38,38,0.1); color: var(--error); }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
   .material-item {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 0; border-bottom: 1px solid var(--border);
   }
   .material-item:last-child { border-bottom: none; }
-  .material-name { font-size: 14px; }
+  .material-name { font-size: 14px; font-weight: 500; }
   .material-size { font-size: 12px; color: var(--text-dim); }
-  .ocr-result { margin-top: 12px; font-size: 12px; }
-  .ocr-result dt { color: var(--text-dim); float: left; width: 100px; }
-  .ocr-result dd { margin-left: 100px; margin-bottom: 4px; }
+  .ocr-result { margin-top: 12px; font-size: 13px; }
+  .ocr-result dt { color: var(--text-dim); float: left; width: 80px; }
+  .ocr-result dd { margin-left: 80px; margin-bottom: 6px; }
   .msg { padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-top: 8px; }
-  .msg-error { background: rgba(239,68,68,0.1); color: var(--error); }
-  .msg-success { background: rgba(34,197,94,0.1); color: var(--success); }
+  .msg-error { background: rgba(220,38,38,0.06); color: var(--error); }
+  .msg-success { background: rgba(22,163,74,0.06); color: var(--success); }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 </style>
 </head>
@@ -72,102 +74,102 @@
 <div class="container" x-data="visabot()">
   <header>
     <h1>VisaBot</h1>
-    <span>v0.1 - Japan Visa Material Generator</span>
+    <span>v0.1 -- 日本签证材料自动生成</span>
   </header>
 
   <div class="grid">
-    <!-- LEFT: Passport + Profile -->
+    <!-- LEFT -->
     <div>
       <div class="card">
-        <h2>1. Passport OCR</h2>
+        <h2>1. 护照识别</h2>
         <div class="dropzone" :class="{ dragover }"
              @dragover.prevent="dragover = true" @dragleave="dragover = false"
              @drop.prevent="dragover = false; uploadPassport($event.dataTransfer.files[0])"
              @click="$refs.passportInput.click()">
           <input type="file" x-ref="passportInput" accept="image/*" @change="uploadPassport($event.target.files[0])">
           <template x-if="!passport">
-            <div>Drop passport photo here or click to upload</div>
+            <div>拖拽护照照片到此处，或点击上传</div>
           </template>
           <template x-if="passport">
-            <div style="color: var(--success)">OCR Complete</div>
+            <div style="color: var(--success)">识别完成</div>
           </template>
         </div>
         <template x-if="ocrLoading">
-          <div class="msg" style="color: var(--accent)">Extracting passport data...</div>
+          <div class="msg" style="color: var(--accent)">正在识别护照信息...</div>
         </template>
         <template x-if="ocrError">
           <div class="msg msg-error" x-text="ocrError"></div>
         </template>
         <template x-if="passport">
           <dl class="ocr-result">
-            <dt>Name</dt><dd x-text="passport.nameCN + ' / ' + passport.surNameEN + ' ' + passport.givenNameEN"></dd>
-            <dt>Passport</dt><dd x-text="passport.passportNo"></dd>
-            <dt>DOB</dt><dd x-text="passport.dob"></dd>
-            <dt>Gender</dt><dd x-text="passport.gender"></dd>
-            <dt>Expiry</dt><dd x-text="passport.expiryDate"></dd>
-            <dt>Birthplace</dt><dd x-text="passport.birthplace"></dd>
+            <dt>姓名</dt><dd x-text="passport.nameCN + ' / ' + passport.surNameEN + ' ' + passport.givenNameEN"></dd>
+            <dt>护照号</dt><dd x-text="passport.passportNo"></dd>
+            <dt>出生日期</dt><dd x-text="passport.dob"></dd>
+            <dt>性别</dt><dd x-text="passport.gender === 'M' ? '男' : '女'"></dd>
+            <dt>有效期至</dt><dd x-text="passport.expiryDate"></dd>
+            <dt>出生地</dt><dd x-text="passport.birthplace"></dd>
           </dl>
         </template>
       </div>
 
       <div class="card" style="margin-top: 16px;">
-        <h2>2. Profile</h2>
-        <label>Phone</label>
+        <h2>2. 个人档案</h2>
+        <label>手机号</label>
         <input x-model="profile.phone" placeholder="13800138000">
-        <label>Email</label>
+        <label>邮箱</label>
         <input x-model="profile.email" placeholder="name@example.com">
-        <label>Address</label>
-        <input x-model="profile.address" placeholder="Home address">
+        <label>家庭住址</label>
+        <input x-model="profile.address" placeholder="省/市/区/街道">
         <div class="two-col">
-          <div><label>Employer</label><input x-model="profile.employer" placeholder="Company name"></div>
-          <div><label>Position</label><input x-model="profile.position" placeholder="Job title"></div>
+          <div><label>公司名称</label><input x-model="profile.employer" placeholder="公司全称"></div>
+          <div><label>职位</label><input x-model="profile.position" placeholder="职位名称"></div>
         </div>
         <div class="two-col">
-          <div><label>Department</label><input x-model="profile.department" placeholder="Dept"></div>
-          <div><label>Salary</label><input x-model="profile.monthlySalary" placeholder="15,000"></div>
+          <div><label>部门</label><input x-model="profile.department" placeholder="所在部门"></div>
+          <div><label>月薪</label><input x-model="profile.monthlySalary" placeholder="15,000"></div>
         </div>
         <div class="two-col">
-          <div><label>Employer Address</label><input x-model="profile.employerAddress"></div>
-          <div><label>Employer Phone</label><input x-model="profile.employerPhone"></div>
+          <div><label>公司地址</label><input x-model="profile.employerAddress" placeholder="公司详细地址"></div>
+          <div><label>公司电话</label><input x-model="profile.employerPhone" placeholder="010-12345678"></div>
         </div>
-        <label>Employment Start Date</label>
+        <label>入职日期</label>
         <input type="date" x-model="profile.employmentStartDate">
-        <button class="btn btn-outline" @click="saveProfile()">Save Profile</button>
+        <button class="btn btn-outline" @click="saveProfile()">保存档案</button>
       </div>
     </div>
 
-    <!-- CENTER: Intent + Generation -->
+    <!-- CENTER -->
     <div>
       <div class="card">
-        <h2>3. Travel Intent</h2>
+        <h2>3. 出行计划</h2>
         <div class="two-col">
-          <div><label>Start Date</label><input type="date" x-model="intent.startDate"></div>
-          <div><label>End Date</label><input type="date" x-model="intent.endDate"></div>
+          <div><label>出发日期</label><input type="date" x-model="intent.startDate"></div>
+          <div><label>返回日期</label><input type="date" x-model="intent.endDate"></div>
         </div>
-        <label>Cities (comma-separated)</label>
-        <input x-model="citiesStr" placeholder="Tokyo, Osaka">
-        <label>Purpose</label>
-        <input x-model="intent.purpose" placeholder="Tourism" value="Tourism">
+        <label>目的地城市（逗号分隔）</label>
+        <input x-model="citiesStr" placeholder="东京, 大阪, 京都">
+        <label>出行目的</label>
+        <input x-model="intent.purpose" placeholder="观光旅游">
 
-        <label style="margin-top:16px">Photo (optional)</label>
+        <label style="margin-top:16px">签证照片（可选）</label>
         <input type="file" x-ref="photoInput" accept="image/*" style="display:block">
 
         <button class="btn" @click="generate()" :disabled="generating || !passport">
           <template x-if="!generating">
-            <span>Generate All Materials</span>
+            <span>一键生成全部材料</span>
           </template>
           <template x-if="generating">
-            <span>Generating...</span>
+            <span>正在生成...</span>
           </template>
         </button>
       </div>
 
       <div class="card" style="margin-top: 16px;">
-        <h2>Generation Progress</h2>
+        <h2>生成进度</h2>
         <ul class="step-list">
           <template x-for="s in stepList" :key="s.id">
             <li class="step-item">
-              <span class="badge" :class="'badge-' + s.status" x-text="s.status"></span>
+              <span class="badge" :class="'badge-' + s.status" x-text="statusText(s.status)"></span>
               <span x-text="s.label"></span>
               <template x-if="s.message">
                 <span style="font-size:11px;color:var(--text-dim)" x-text="s.message"></span>
@@ -178,13 +180,13 @@
       </div>
     </div>
 
-    <!-- RIGHT: Materials -->
+    <!-- RIGHT -->
     <div>
       <div class="card">
-        <h2>Generated Materials</h2>
+        <h2>生成结果</h2>
         <template x-if="!materials">
           <div style="color: var(--text-dim); font-size: 13px; padding: 20px 0; text-align: center;">
-            Materials will appear here after generation
+            生成完成后，材料将显示在这里
           </div>
         </template>
         <template x-if="materials">
@@ -195,8 +197,9 @@
                   <div class="material-name" x-text="m.name"></div>
                   <div class="material-size" x-text="(m.size / 1024).toFixed(1) + ' KB'"></div>
                 </div>
-                <a class="btn btn-outline" :href="m.url" target="_blank" style="margin-top:0;padding:6px 12px;font-size:12px;">
-                  Download
+                <a class="btn btn-outline" :href="m.url" target="_blank" style="margin-top:0;padding:6px 12px;font-size:12px;"
+                   @click.prevent="previewUrl = m.url">
+                  预览
                 </a>
               </div>
             </template>
@@ -205,13 +208,13 @@
       </div>
 
       <div class="card" style="margin-top: 16px;">
-        <h2>Preview</h2>
+        <h2>材料预览</h2>
         <template x-if="previewUrl">
           <iframe :src="previewUrl" style="width:100%;height:500px;border:none;border-radius:8px;background:#fff;"></iframe>
         </template>
         <template x-if="!previewUrl">
           <div style="color: var(--text-dim); font-size: 13px; padding: 40px 0; text-align: center;">
-            Click a material to preview
+            点击材料名称可在此预览
           </div>
         </template>
       </div>
@@ -222,7 +225,6 @@
 <script>
 function visabot() {
   return {
-    // State
     passport: null,
     ocrLoading: false,
     ocrError: null,
@@ -235,7 +237,7 @@ function visabot() {
       employmentStartDate: '',
       emergencyContact: { name: '', relationship: '', phone: '' },
     },
-    intent: { startDate: '', endDate: '', cities: [], purpose: 'Tourism' },
+    intent: { startDate: '', endDate: '', cities: [], purpose: '观光旅游' },
     citiesStr: '',
     generating: false,
     materials: null,
@@ -243,14 +245,18 @@ function visabot() {
     steps: {},
     eventSource: null,
 
+    statusText(s) {
+      return { pending: '等待', running: '进行中', done: '完成', error: '失败' }[s] || s;
+    },
+
     get stepList() {
       const labels = {
-        'ocr': 'Passport OCR',
-        'visa-form': 'Visa Application Form',
-        'itinerary': 'Travel Itinerary',
-        'hotel': 'Hotel Confirmation',
-        'employment': 'Employment Letter',
-        'photo': 'Passport Photo',
+        'ocr': '护照识别',
+        'visa-form': '签证申请表',
+        'itinerary': '旅行行程单',
+        'hotel': '酒店确认函',
+        'employment': '在职证明',
+        'photo': '签证照片',
       };
       return Object.entries(labels).map(([id, label]) => ({
         id, label,
@@ -276,11 +282,9 @@ function visabot() {
     },
 
     init() {
-      // Load saved profile
       fetch('/api/profile').then(r => r.json()).then(res => {
         if (res.data) Object.assign(this.profile, res.data);
-      });
-      // Connect SSE
+      }).catch(() => {});
       this.connectSSE();
     },
 
@@ -294,7 +298,6 @@ function visabot() {
         if (event.type === 'complete') {
           this.generating = false;
           this.materials = event.data;
-          // Auto-preview first material
           if (this.materialList.length > 0) {
             this.previewUrl = this.materialList[0].url;
           }
@@ -303,6 +306,7 @@ function visabot() {
           this.generating = false;
         }
       };
+      this.eventSource.onerror = () => {};
     },
 
     async uploadPassport(file) {
@@ -317,7 +321,6 @@ function visabot() {
         if (json.success) {
           this.passport = json.data;
           this.steps.ocr = { status: 'done' };
-          // Auto-fill profile name from passport
           this.profile.nameCN = json.data.nameCN;
           this.profile.nameEN = `${json.data.surNameEN} ${json.data.givenNameEN}`;
         } else {
@@ -339,31 +342,21 @@ function visabot() {
     },
 
     async generate() {
-      // Parse cities
       this.intent.cities = this.citiesStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-
-      // Save intent
       await fetch('/api/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.intent),
       });
-
-      // Save profile
       await this.saveProfile();
-
-      // Start generation
       this.generating = true;
       this.materials = null;
-      // Reset steps
       for (const key of ['visa-form', 'itinerary', 'hotel', 'employment', 'photo']) {
         this.steps[key] = { status: 'pending' };
       }
-
       const fd = new FormData();
       const photoFile = this.$refs.photoInput?.files?.[0];
       if (photoFile) fd.append('photo', photoFile);
-
       await fetch('/api/generate', { method: 'POST', body: fd });
     },
   };
