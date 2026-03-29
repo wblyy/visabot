@@ -75,6 +75,11 @@
   <header>
     <h1>VisaBot</h1>
     <span>v0.1 -- 日本签证材料自动生成</span>
+    <template x-if="apiBase">
+      <span style="margin-left:auto;font-size:11px;color:var(--success);background:rgba(22,163,74,0.08);padding:3px 8px;border-radius:4px;">
+        API: <span x-text="apiBase.replace(/https?:\/\//, '').substring(0, 30)"></span>
+      </span>
+    </template>
   </header>
 
   <div class="grid">
@@ -223,9 +228,13 @@
 </div>
 
 <script>
+// API base: use query param ?api=URL or same-origin
+const API_BASE = new URLSearchParams(location.search).get('api') || '';
+
 function visabot() {
   return {
     passport: null,
+    apiBase: API_BASE,
     ocrLoading: false,
     ocrError: null,
     dragover: false,
@@ -271,7 +280,7 @@ function visabot() {
       const m = this.materials;
       const sid = m.sessionId;
       const add = (file, filename) => {
-        if (file) items.push({ ...file, url: `/api/materials/${sid}/${filename}` });
+        if (file) items.push({ ...file, url: `${API_BASE}/api/materials/${sid}/${filename}` });
       };
       add(m.visaForm, 'visa-application.pdf');
       add(m.itinerary, 'itinerary.pdf');
@@ -282,14 +291,14 @@ function visabot() {
     },
 
     init() {
-      fetch('/api/profile').then(r => r.json()).then(res => {
+      fetch(API_BASE + '/api/profile').then(r => r.json()).then(res => {
         if (res.data) Object.assign(this.profile, res.data);
       }).catch(() => {});
       this.connectSSE();
     },
 
     connectSSE() {
-      this.eventSource = new EventSource('/api/events');
+      this.eventSource = new EventSource(API_BASE + '/api/events');
       this.eventSource.onmessage = (e) => {
         const event = JSON.parse(e.data);
         if (event.type === 'step-update') {
@@ -316,7 +325,7 @@ function visabot() {
       const fd = new FormData();
       fd.append('passport', file);
       try {
-        const res = await fetch('/api/ocr', { method: 'POST', body: fd });
+        const res = await fetch(API_BASE + '/api/ocr', { method: 'POST', body: fd });
         const json = await res.json();
         if (json.success) {
           this.passport = json.data;
@@ -334,7 +343,7 @@ function visabot() {
     },
 
     async saveProfile() {
-      await fetch('/api/profile', {
+      await fetch(API_BASE + '/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.profile),
@@ -343,7 +352,7 @@ function visabot() {
 
     async generate() {
       this.intent.cities = this.citiesStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-      await fetch('/api/intent', {
+      await fetch(API_BASE + '/api/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.intent),
@@ -357,7 +366,7 @@ function visabot() {
       const fd = new FormData();
       const photoFile = this.$refs.photoInput?.files?.[0];
       if (photoFile) fd.append('photo', photoFile);
-      await fetch('/api/generate', { method: 'POST', body: fd });
+      await fetch(API_BASE + '/api/generate', { method: 'POST', body: fd });
     },
   };
 }
