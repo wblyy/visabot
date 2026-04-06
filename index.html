@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VisaBot - 日本签证材料生成器</title>
+<title>VisaBot - 韩国签证材料生成器</title>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>
   :root {
@@ -74,7 +74,7 @@
 <div class="container" x-data="visabot()">
   <header>
     <h1>VisaBot</h1>
-    <span>v0.1 -- 日本签证材料自动生成</span>
+    <span>v0.2 -- 韩国签证材料自动生成</span>
     <template x-if="apiBase">
       <span style="margin-left:auto;font-size:11px;color:var(--success);background:rgba(22,163,74,0.08);padding:3px 8px;border-radius:4px;">
         API: <span x-text="apiBase.replace(/https?:\/\//, '').substring(0, 30)"></span>
@@ -125,6 +125,40 @@
         <input x-model="profile.email" placeholder="name@example.com">
         <label>家庭住址</label>
         <input x-model="profile.address" placeholder="省/市/区/街道">
+        <label>身份证号</label>
+        <input x-model="profile.idCardNo" placeholder="18位身份证号码">
+        <div class="two-col">
+          <div>
+            <label>最高学历</label>
+            <select x-model="profile.education">
+              <option value="">请选择</option>
+              <option value="高中">高中</option>
+              <option value="大专">大专</option>
+              <option value="本科">本科</option>
+              <option value="硕士">硕士</option>
+              <option value="博士">博士</option>
+            </select>
+          </div>
+          <div><label>毕业学校</label><input x-model="profile.educationSchool" placeholder="学校名称"></div>
+        </div>
+        <div class="two-col">
+          <div>
+            <label>婚姻状况</label>
+            <select x-model="profile.maritalStatus">
+              <option value="未婚">未婚</option>
+              <option value="已婚">已婚</option>
+              <option value="离异">离异</option>
+              <option value="丧偶">丧偶</option>
+            </select>
+          </div>
+          <div x-show="profile.maritalStatus === '已婚'"><label>配偶姓名</label><input x-model="profile.spouseName" placeholder="配偶中文姓名"></div>
+        </div>
+        <template x-if="profile.maritalStatus === '已婚'">
+          <div class="two-col">
+            <div><label>配偶出生日期</label><input type="date" x-model="profile.spouseDob"></div>
+            <div><label>配偶电话</label><input x-model="profile.spousePhone" placeholder="手机号"></div>
+          </div>
+        </template>
         <div class="two-col">
           <div><label>公司名称</label><input x-model="profile.employer" placeholder="公司全称"></div>
           <div><label>职位</label><input x-model="profile.position" placeholder="职位名称"></div>
@@ -152,9 +186,33 @@
           <div><label>返回日期</label><input type="date" x-model="intent.endDate"></div>
         </div>
         <label>目的地城市（逗号分隔）</label>
-        <input x-model="citiesStr" placeholder="东京, 大阪, 京都">
+        <input x-model="citiesStr" placeholder="首尔, 釜山, 济州">
         <label>出行目的</label>
         <input x-model="intent.purpose" placeholder="观光旅游">
+        <div class="two-col">
+          <div><label>停留天数</label><input type="number" x-model="intent.stayDays" placeholder="4"></div>
+          <div>
+            <label>费用承担人</label>
+            <select x-model="intent.costBearer">
+              <option value="本人">本人</option>
+              <option value="公司">公司</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div><label>过去访韩次数</label><input type="number" x-model="intent.priorVisitsToKorea" placeholder="0"></div>
+          <div><label>近5年去过的国家</label><input x-model="intent.recentCountries" placeholder="无"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:16px;font-size:13px;">
+          <label style="margin:0;display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="checkbox" x-model="intent.generateItinerary"> 附加行程单（非必需）
+          </label>
+          <label style="margin:0;display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="checkbox" x-model="intent.generateHotel"> 附加酒店确认函（非必需）
+          </label>
+        </div>
 
         <label style="margin-top:16px">签证照片（可选）</label>
         <input type="file" x-ref="photoInput" accept="image/*" style="display:block">
@@ -329,13 +387,17 @@ function visabot() {
     dragover: false,
     profile: {
       nameCN: '', nameEN: '', phone: '', email: '', address: '',
-      maritalStatus: '未婚',
+      idCardNo: '', maritalStatus: '未婚',
+      education: '', educationSchool: '',
+      spouseName: '', spouseDob: '', spouseNationality: 'CHN', spousePhone: '',
       employer: '', employerEN: '', position: '', positionEN: '',
       department: '', monthlySalary: '', employerAddress: '', employerPhone: '',
       employmentStartDate: '',
       emergencyContact: { name: '', relationship: '', phone: '' },
     },
-    intent: { startDate: '', endDate: '', cities: [], purpose: '观光旅游' },
+    intent: { startDate: '', endDate: '', cities: [], purpose: '观光旅游',
+      stayDays: '', costBearer: '本人', priorVisitsToKorea: 0, recentCountries: '',
+      generateItinerary: false, generateHotel: false },
     citiesStr: '',
     generating: false,
     materials: null,
@@ -355,8 +417,8 @@ function visabot() {
       const labels = {
         'ocr': '护照识别',
         'visa-form': '签证申请表',
-        'itinerary': '旅行行程单',
-        'hotel': '酒店确认函',
+        'itinerary': '旅行行程单（可选）',
+        'hotel': '酒店确认函（可选）',
         'employment': '在职证明',
         'photo': '签证照片',
       };
